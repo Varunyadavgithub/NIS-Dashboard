@@ -1,14 +1,10 @@
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, { createContext, useContext, useReducer } from "react";
 import { apiService } from "../services/api";
 import toast from "react-hot-toast";
 
 const AppContext = createContext();
 
 const initialState = {
-  user: null,
-  isAuthenticated: false,
-  loading: true,
-  sidebarOpen: true,
   guards: [],
   clients: [],
   deployments: [],
@@ -18,20 +14,11 @@ const initialState = {
   revenueData: [],
   attendanceChartData: [],
   recentActivities: [],
+  sidebarOpen: true,
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "SET_LOADING":
-      return { ...state, loading: action.payload };
-    case "SET_USER":
-      return {
-        ...state,
-        user: action.payload,
-        isAuthenticated: !!action.payload,
-      };
-    case "LOGOUT":
-      return { ...initialState, loading: false };
     case "TOGGLE_SIDEBAR":
       return { ...state, sidebarOpen: !state.sidebarOpen };
     case "SET_SIDEBAR":
@@ -121,40 +108,6 @@ const reducer = (state, action) => {
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-
-    if (token && user) {
-      dispatch({ type: "SET_USER", payload: JSON.parse(user) });
-    }
-    dispatch({ type: "SET_LOADING", payload: false });
-  }, []);
-
-  const login = async (credentials) => {
-    try {
-      dispatch({ type: "SET_LOADING", payload: true });
-      const { token, user } = await apiService.login(credentials);
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      dispatch({ type: "SET_USER", payload: user });
-      toast.success("Login successful!");
-      return true;
-    } catch (error) {
-      toast.error(error.message || "Login failed");
-      return false;
-    } finally {
-      dispatch({ type: "SET_LOADING", payload: false });
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    dispatch({ type: "LOGOUT" });
-    toast.success("Logged out successfully");
-  };
 
   const toggleSidebar = () => {
     dispatch({ type: "TOGGLE_SIDEBAR" });
@@ -398,8 +351,6 @@ export const AppProvider = ({ children }) => {
 
   const value = {
     ...state,
-    login,
-    logout,
     toggleSidebar,
     setSidebar,
     fetchGuards,

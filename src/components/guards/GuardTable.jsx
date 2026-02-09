@@ -1,7 +1,8 @@
+import React from "react";
 import Table from "../common/Table";
 import Badge from "../common/Badge";
 import { HiOutlinePencil, HiOutlineTrash, HiOutlineEye } from "react-icons/hi";
-import { formatCurrency, formatDate } from "../../utils/helpers";
+import { formatCurrency } from "../../utils/helpers";
 
 const GuardTable = ({ guards, onView, onEdit, onDelete }) => {
   const statusVariant = {
@@ -69,24 +70,33 @@ const GuardTable = ({ guards, onView, onEdit, onDelete }) => {
             </Table.Cell>
             <Table.Cell>
               <div className="flex items-center gap-1">
-                <button
-                  onClick={() => onView(guard)}
-                  className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                >
-                  <HiOutlineEye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onEdit(guard)}
-                  className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <HiOutlinePencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onDelete(guard)}
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <HiOutlineTrash className="w-4 h-4" />
-                </button>
+                {onView && (
+                  <button
+                    onClick={() => onView(guard)}
+                    className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    title="View Details"
+                  >
+                    <HiOutlineEye className="w-4 h-4" />
+                  </button>
+                )}
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(guard)}
+                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <HiOutlinePencil className="w-4 h-4" />
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => onDelete(guard)}
+                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <HiOutlineTrash className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </Table.Cell>
           </Table.Row>

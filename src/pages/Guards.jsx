@@ -1,5 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useApp } from "../context/AppContext";
+import { usePermissions } from "../hooks/usePermissions";
+import PermissionGate from "../components/auth/PermissionGate";
+import { PERMISSIONS } from "../config/roles";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
@@ -16,7 +19,6 @@ import {
   HiOutlinePlus,
   HiOutlineViewGrid,
   HiOutlineViewList,
-  HiOutlineFilter,
   HiOutlineDownload,
   HiOutlineUserGroup,
 } from "react-icons/hi";
@@ -24,6 +26,8 @@ import { downloadCSV } from "../utils/helpers";
 
 const Guards = () => {
   const { guards, fetchGuards, addGuard, updateGuard, deleteGuard } = useApp();
+  const permissions = usePermissions();
+
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -66,11 +70,13 @@ const Guards = () => {
   const totalPages = Math.ceil(filteredGuards.length / itemsPerPage);
 
   const handleAdd = () => {
+    if (!permissions.canCreateGuard) return;
     setSelectedGuard(null);
     setShowModal(true);
   };
 
   const handleEdit = (guard) => {
+    if (!permissions.canEditGuard) return;
     setSelectedGuard(guard);
     setShowModal(true);
     setShowDetails(false);
@@ -82,6 +88,7 @@ const Guards = () => {
   };
 
   const handleDelete = (guard) => {
+    if (!permissions.canDeleteGuard) return;
     setSelectedGuard(guard);
     setShowDeleteConfirm(true);
   };
@@ -113,6 +120,7 @@ const Guards = () => {
   };
 
   const handleExport = () => {
+    if (!permissions.canExportGuards) return;
     const exportData = filteredGuards.map((g) => ({
       ID: `GRD-${g.id.toString().padStart(4, "0")}`,
       Name: g.name,
@@ -141,10 +149,12 @@ const Guards = () => {
           </h1>
           <p className="text-gray-500">Manage your security personnel</p>
         </div>
-        <Button onClick={handleAdd}>
-          <HiOutlinePlus className="w-5 h-5" />
-          Add Guard
-        </Button>
+        <PermissionGate permissions={[PERMISSIONS.CREATE_GUARD]}>
+          <Button onClick={handleAdd}>
+            <HiOutlinePlus className="w-5 h-5" />
+            Add Guard
+          </Button>
+        </PermissionGate>
       </div>
 
       {/* Filters & Actions */}
@@ -171,10 +181,12 @@ const Guards = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={handleExport}>
-              <HiOutlineDownload className="w-5 h-5" />
-              Export
-            </Button>
+            <PermissionGate permissions={[PERMISSIONS.EXPORT_GUARDS]}>
+              <Button variant="secondary" onClick={handleExport}>
+                <HiOutlineDownload className="w-5 h-5" />
+                Export
+              </Button>
+            </PermissionGate>
             <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
               <button
                 onClick={() => setViewMode("table")}
@@ -212,18 +224,22 @@ const Guards = () => {
                 : "Get started by adding your first security guard"
             }
             actionLabel={
-              !searchQuery && statusFilter === "all" ? "Add Guard" : null
+              permissions.canCreateGuard &&
+              !searchQuery &&
+              statusFilter === "all"
+                ? "Add Guard"
+                : null
             }
             onAction={handleAdd}
           />
         </Card>
       ) : viewMode === "table" ? (
         <Card padding={false}>
-          <GuardTable
+          <GuardTableWithPermissions
             guards={paginatedGuards}
             onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onEdit={permissions.canEditGuard ? handleEdit : null}
+            onDelete={permissions.canDeleteGuard ? handleDelete : null}
           />
           <div className="p-4 border-t border-gray-100">
             <Pagination
@@ -243,8 +259,8 @@ const Guards = () => {
                 key={guard.id}
                 guard={guard}
                 onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+                onEdit={permissions.canEditGuard ? handleEdit : null}
+                onDelete={permissions.canDeleteGuard ? handleDelete : null}
               />
             ))}
           </div>
@@ -292,7 +308,7 @@ const Guards = () => {
         {selectedGuard && (
           <GuardDetails
             guard={selectedGuard}
-            onEdit={handleEdit}
+            onEdit={permissions.canEditGuard ? handleEdit : null}
             onClose={() => {
               setShowDetails(false);
               setSelectedGuard(null);
@@ -315,6 +331,18 @@ const Guards = () => {
         loading={submitLoading}
       />
     </div>
+  );
+};
+
+// Guard Table with permission-based action buttons
+const GuardTableWithPermissions = ({ guards, onView, onEdit, onDelete }) => {
+  return (
+    <GuardTable
+      guards={guards}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
   );
 };
 

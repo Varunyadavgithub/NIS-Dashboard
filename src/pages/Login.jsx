@@ -1,24 +1,30 @@
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
-import { useApp } from "../context/AppContext";
+import React, { useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
+import { ROLE_CONFIG } from "../config/roles";
 import {
   HiOutlineShieldCheck,
   HiOutlineMail,
   HiOutlineLockClosed,
+  HiOutlineInformationCircle,
 } from "react-icons/hi";
 
 const Login = () => {
-  const { login, isAuthenticated, loading } = useApp();
+  const { login, isAuthenticated, loading } = useAuth();
+  const location = useLocation();
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
+
+  const from = location.state?.from?.pathname || "/";
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={from} replace />;
   }
 
   const handleChange = (e) => {
@@ -40,9 +46,42 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      await login(credentials);
+      const result = await login(credentials);
+      if (result.success) {
+        // Navigation will happen automatically due to isAuthenticated check
+      }
     }
   };
+
+  const fillCredentials = (email, password) => {
+    setCredentials({ email, password });
+  };
+
+  // Demo users for quick login
+  const demoUsers = [
+    {
+      role: "Super Admin",
+      email: "superadmin@nehasecurity.com",
+      password: "super123",
+    },
+    { role: "Admin", email: "admin@nehasecurity.com", password: "admin123" },
+    {
+      role: "Manager",
+      email: "manager@nehasecurity.com",
+      password: "manager123",
+    },
+    {
+      role: "Supervisor",
+      email: "supervisor@nehasecurity.com",
+      password: "supervisor123",
+    },
+    { role: "Staff", email: "staff@nehasecurity.com", password: "staff123" },
+    {
+      role: "Accountant",
+      email: "accountant@nehasecurity.com",
+      password: "accountant123",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center p-4">
@@ -71,7 +110,7 @@ const Login = () => {
               type="email"
               value={credentials.email}
               onChange={handleChange}
-              placeholder="admin@nehasecurity.com"
+              placeholder="Enter your email"
               icon={HiOutlineMail}
               error={errors.email}
             />
@@ -107,18 +146,45 @@ const Login = () => {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 text-center mb-2">
-              Demo Credentials:
-            </p>
-            <p className="text-xs text-gray-500 text-center">
-              Email: <span className="font-mono">admin@nehasecurity.com</span>
-            </p>
-            <p className="text-xs text-gray-500 text-center">
-              Password: <span className="font-mono">admin123</span>
-            </p>
+          {/* Demo Credentials Toggle */}
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => setShowDemoCredentials(!showDemoCredentials)}
+              className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-primary-600"
+            >
+              <HiOutlineInformationCircle className="w-5 h-5" />
+              {showDemoCredentials ? "Hide" : "Show"} Demo Credentials
+            </button>
           </div>
+
+          {/* Demo Credentials */}
+          {showDemoCredentials && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg max-h-64 overflow-y-auto">
+              <p className="text-sm font-medium text-gray-700 mb-3">
+                Click to fill credentials:
+              </p>
+              <div className="space-y-2">
+                {demoUsers.map((user) => (
+                  <button
+                    key={user.email}
+                    type="button"
+                    onClick={() => fillCredentials(user.email, user.password)}
+                    className="w-full text-left p-2 rounded-lg hover:bg-primary-50 border border-gray-200 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">
+                        {user.role}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {user.email}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-center text-primary-200 text-sm mt-6">

@@ -13,7 +13,7 @@ import {
 
 // Create axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.REACT_APP_API_URL || "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -54,8 +54,8 @@ export const apiService = {
   login: async (credentials) => {
     await delay(500);
     if (
-      credentials.email === process.env.ADMIN_EMAIL &&
-      credentials.password === process.env.ADMIN_PASSWORD
+      credentials.email === "admin@nehasecurity.com" &&
+      credentials.password === "admin123"
     ) {
       return {
         token: "mock-jwt-token",
