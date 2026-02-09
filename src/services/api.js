@@ -9,7 +9,7 @@ import {
   revenueData,
   attendanceChartData,
   recentActivities,
-} from "../data/mockData";
+} from "../data/mockData.js";
 
 // Create axios instance
 const api = axios.create({
